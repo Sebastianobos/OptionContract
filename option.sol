@@ -19,6 +19,22 @@ contract Option{
     AggregatorV3Interface internal priceFeed;
     AggregatorV3Interface internal priceFeedETH;
 
+    constructor(uint256 max, uint256 p, uint256 s, uint256 d) payable {
+        priceFeed = AggregatorV3Interface(underlying); // BTC/USD
+        priceFeedETH = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306); // ETH//USD
+        (, int price_under,,,) = priceFeed.latestRoundData();
+        (, int price_ETH,,,) = priceFeedETH.latestRoundData();
+        uint256 price_under_ETH = uint256(price_under) * 1e18 / uint256(price_ETH);
+        require(msg.value >= max*price_under_ETH/1000/10, "Not enough collateral");
+        seller = msg.sender;
+        strike = s;
+        price = p;
+        duration = d;
+        max_amount = max;
+        available = true;
+        exercised = false;
+    }
+
     function adjustPrice(uint256 p) public {
         require(msg.sender == seller, "Only seller can change the price");
         require(available == true, "Price can only be changed before sale");
@@ -49,25 +65,9 @@ contract Option{
         return value;
     }
 
-    constructor(uint256 s, uint256 p, uint256 d, uint256 ma) payable {
-        priceFeed = AggregatorV3Interface(underlying); // BTC/USD
-        priceFeedETH = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306); // ETH//USD
-        (, int price_under,,,) = priceFeed.latestRoundData();
-        (, int price_ETH,,,) = priceFeedETH.latestRoundData();
-        uint256 price_under_ETH = uint256(price_under) * 1e18 / uint256(price_ETH);
-        // require(msg.value >= ma*price_under_ETH/1000/10, "Not enough collateral");
-        seller = msg.sender;
-        strike = s;
-        price = p;
-        duration = d;
-        max_amount = ma;
-        available = true;
-        exercised = false;
-    }
-
-    function buy(uint a) public payable {
+    function buy(uint256 a) public payable {
         require(msg.value == a*price/1000, "Wrong payment");
-        require(a<max_amount, "Too many contracts");
+        require(a<=max_amount, "Too many contracts");
         require(available == true, "No longer available");
         buyer = msg.sender;
         available = false;   
@@ -95,4 +95,3 @@ contract Option{
         exercised = true;
     }
 } 
-
