@@ -11,8 +11,8 @@ contract Option{
     uint256 public price; //in wei
     uint256 public duration; //seconds
     uint256 public buy_time; //seconds
-    uint256 public max_amount; //in 0.001 units of underlying
-    uint256 amount; //in 0.001 units of underlying
+    uint256 public max_amount; //in 0.001 units
+    uint256 amount; //in 0.001 units
     bool public available;
     bool public exercised;
 
